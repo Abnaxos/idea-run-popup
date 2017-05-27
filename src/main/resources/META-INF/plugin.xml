@@ -2,11 +2,29 @@
   <id>ch.raffael.idea.plugins.runpopup</id>
   <name>Run Popup</name>
   <version>1.0</version>
-  <vendor email="herzog@raffael.ch" url="http://www.github.com/Abnaxos">Raffael Herzog</vendor>
+  <vendor email="herzog@raffael.ch" url="https://github.com/Abnaxos/idea-run-popup">Raffael Herzog</vendor>
 
   <description><![CDATA[
-  Provides a simple run menu.
-    ]]></description>
+
+    <p>A popup menu for IDEA to provide easier access to run
+    configurations.</p>
+
+    <p>The popup menu shows a list of run configurations in two sections:
+    Favorites (first) and others. Each section can be separately configured to
+    show the configurations last used first or using the ordering of the run
+    configurations settings dialog.</p>
+
+    <p>For each entry, the popup remembers the last executor used (Run, Debug,
+    etc.)</p>
+
+    <p>The popup menu is searchable and also handles searching for the first
+    letters of words (e.g. search for «riwp» to find «Run IDEA with
+    plugin»).</p>
+
+    <p>It can be both placed into the toolbar or bound to a key. It can
+    replace the default run dropdown.</p>
+
+  ]]></description>
 
   <change-notes><![CDATA[
     ]]>
