@@ -36,7 +36,7 @@
 
   <actions>
     <action class="ch.raffael.idea.plugins.runpopup.RunPopupAction" id="ch.raffael.idea.plugins.runpopup.RunPopup" popup="true">
-      <add-to-group group-id="ToolbarRunGroup" anchor="before" relative-to-action="RunConfiguration"/>
+      <!--<add-to-group group-id="ToolbarRunGroup" anchor="before" relative-to-action="RunConfiguration"/>-->
     </action>
   </actions>
 
