@@ -2,6 +2,7 @@
 !.gitignore
 !/modules.xml
 !/vcs.xml
+!/encodings.xml
 
 !/runConfigurations/
 !/runConfigurations/*
