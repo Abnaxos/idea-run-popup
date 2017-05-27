@@ -25,6 +25,9 @@
     <p>It can be both placed into the toolbar or bound to a key. It can
     replace the default run dropdown.</p>
 
+    <p>See the <a href="https://github.com/Abnaxos/idea-run-popup>Project’s
+    GitHub page</a> for more information and updated documentation.</p>
+
   ]]></description>
 
   <change-notes><![CDATA[
