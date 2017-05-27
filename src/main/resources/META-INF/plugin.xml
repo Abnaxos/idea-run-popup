@@ -1,0 +1,30 @@
+<idea-plugin>
+  <id>ch.raffael.idea.plugins.runpopup</id>
+  <name>Run Popup</name>
+  <version>1.0</version>
+  <vendor email="herzog@raffael.ch" url="http://www.github.com/Abnaxos">Raffael Herzog</vendor>
+
+  <description><![CDATA[
+  Provides a simple run menu.
+    ]]></description>
+
+  <change-notes><![CDATA[
+    ]]>
+  </change-notes>
+
+  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
+  <idea-version since-build="163"/>
+
+  <actions>
+    <action class="ch.raffael.idea.plugins.runpopup.RunPopupAction" id="ch.raffael.idea.plugins.runpopup.RunPopup" popup="true">
+      <add-to-group group-id="ToolbarRunGroup" anchor="before" relative-to-action="RunConfiguration"/>
+    </action>
+  </actions>
+
+  <project-components>
+    <component>
+      <implementation-class>ch.raffael.idea.plugins.runpopup.RunConfigurationUseTracker</implementation-class>
+    </component>
+  </project-components>
+
+</idea-plugin>

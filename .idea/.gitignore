@@ -1,0 +1,7 @@
+*
+!.gitignore
+!/modules.xml
+!/vcs.xml
+
+!/runConfigurations/
+!/runConfigurations/*
