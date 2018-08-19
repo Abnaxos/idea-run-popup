@@ -18,7 +18,7 @@ apply plugin:'java'
 apply plugin:'idea'
 apply plugin:'org.jetbrains.intellij'
 
-version = '1.0-SNAPSHOT'
+version = '1.0-SNAPSHOT' //#prepare-release
 group = 'ch.raffael.idea.plugins.runpopup'
 
 intellij {
@@ -45,4 +45,26 @@ task updateLicense() {
 buildPlugin {
     dependsOn updateLicense
     from updateLicense.licenseFile
+}
+
+//noinspection GroovyAssignabilityCheck
+task prepareRelease() {
+    final charset = 'UTF-8'
+    doFirst {
+        file('build.gradle').with { f ->
+            logger.quiet "Updating: $f"
+
+            f.write(
+                    f.getText(charset).
+                            replaceAll('(?m)^[ \\t]*version\\s*=.*\\D(\\d[-.\\d]+)-SNAPSHOT.*//#prepare-release[ \\t]*$', 'version = \'$1\''),
+                    charset)
+        }
+        file('src/main/resources/META-INF/plugin.xml').with { f ->
+            logger.quiet "Updating: $f"
+            f.write(
+                    f.getText(charset).
+                            replaceAll('(?m)(.*)/develop/images/(.*)<!--#prepare-release-->[ \\t]*$', '$1/master/images/$2'),
+                    charset)
+        }
+    }
 }
