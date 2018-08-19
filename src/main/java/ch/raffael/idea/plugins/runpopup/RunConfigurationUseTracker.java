@@ -49,7 +49,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Raffael Herzog
  */
-@State(name="ch.raffael.plugins.idea.betterRun.RunConfigurationUseTracker")
+@State(name="ch.raffael.plugins.idea.runpopup.RunConfigurationUseTracker")
 public class RunConfigurationUseTracker extends AbstractProjectComponent implements PersistentStateComponent<RunConfigurationUseTracker.State> {
 
     private final Object stateLock = new Object();
