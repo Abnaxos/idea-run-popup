@@ -32,6 +32,8 @@
     <p>A popup menu for IDEA to provide easier access to run
     configurations.</p>
 
+    <img src="https://raw.githubusercontent.com/Abnaxos/idea-run-popup/develop/images/run-popup.png" alt="Run Popup">
+
     <p>The popup menu shows a list of run configurations in two sections:
     Favorites (first) and others. Each section can be separately configured to
     show the configurations last used first or using the ordering of the run
