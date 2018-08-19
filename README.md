@@ -3,6 +3,8 @@ IDEA Run Popup Plugin
 
 A popup menu for IDEA to provide easier access to run configurations.
 
+![Run Popup](images/run-popup.png)
+
 The popup menu shows a list of run configurations in two sections: Favorites
 (first) and others. Each section can be separately configured to show the
 configurations last used first or using the ordering of the run
