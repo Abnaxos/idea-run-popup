@@ -29,7 +29,7 @@ intellij {
 task updateLicense() {
 
     ext.copyrightProfile = file(file('.idea/copyright/MIT.xml'))
-    ext.licenseFile = file('LICENSE.txt')
+    ext.licenseFile = file('LICENSE')
 
     inputs.file copyrightProfile
     outputs.file licenseFile
@@ -40,4 +40,9 @@ task updateLicense() {
         licenseFile.text = lic
     }
 
+}
+
+buildPlugin {
+    dependsOn updateLicense
+    from updateLicense.licenseFile
 }
