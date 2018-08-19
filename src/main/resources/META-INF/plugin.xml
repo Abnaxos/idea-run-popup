@@ -24,7 +24,7 @@
 <idea-plugin>
   <id>ch.raffael.idea.plugins.runpopup</id>
   <name>Run Popup</name>
-  <version>patched-by-grade</version>
+  <version>patched-by-gradle</version>
   <vendor email="herzog@raffael.ch" url="https://github.com/Abnaxos/idea-run-popup">Raffael Herzog</vendor>
 
   <description><![CDATA[
@@ -48,7 +48,7 @@
     replace the default run dropdown.</p>
 
     <p>See the <a href="https://github.com/Abnaxos/idea-run-popup>Project’s
-    GitHub page</a> for more information and updated documentation.</p>
+    GitHub page</a> for more information.</p>
 
   ]]></description>
 
