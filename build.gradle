@@ -2,8 +2,6 @@ import java.time.LocalDateTime
 import org.ajoberstar.grgit.Grgit
 
 
-buildDir = 'target'
-
 buildscript {
     repositories {
         maven {
@@ -16,16 +14,39 @@ buildscript {
     }
 }
 
+buildDir = 'target'
 apply plugin:'java'
 apply plugin:'idea'
 apply plugin:'org.jetbrains.intellij'
 
-version = 'SNAPSHOT' //#prepare-release
-group = 'ch.raffael.idea.plugins.runpopup'
-
 intellij {
     version = 'IC-2018.2.1'
 }
+
+Grgit git
+try {
+//noinspection GroovyAssignabilityCheck
+    git = Grgit.open(dir: project.rootDir)
+} catch (e) {
+    throw new ProjectConfigurationException("Cannot open git repository: $e", e)
+}
+String currentBranch = git.branch.current.name
+
+//noinspection GroovyAssignabilityCheck
+if (currentBranch == 'master') {
+    List<String> candidates = git.tag.list()*.name?.findAll({it =~ /\d+(\.\d+)+/})
+    if (candidates.size() != 1) {
+        throw new ProjectConfigurationException("No distinct version tag found; candidates: $candidates", null)
+    }
+    version = candidates[0]
+} else {
+    //noinspection GroovyAssignabilityCheck
+    version = (~/.*\/(\d+(\.\d+)+)/).matcher(currentBranch).with {
+        matches() ? "${group(1)}-SNAPSHOT" : 'SNAPSHOT'
+    }
+}
+logger.quiet "Version from git: $project.version"
+project.group = 'ch.raffael.idea.plugins.runpopup'
 
 //noinspection GroovyAssignabilityCheck
 task updateLicense() {
@@ -49,32 +70,20 @@ buildPlugin {
     from updateLicense.licenseFile
 }
 
-//noinspection GroovyAssignabilityCheck
-task prepareRelease() {
-    final charset = 'UTF-8'
-    final releasePrefix = ''
-    doFirst {
-        //noinspection GroovyAssignabilityCheck
-        def grgit = Grgit.open(dir: project.rootDir)
-        //noinspection GroovyAssignabilityCheck
-        def version = (~".*/$releasePrefix(\\d+(\\.\\d+)+)").matcher(grgit.branch.current.name).with {
-            if (!matches()) throw new GradleException("Cannot determine version from branch name '$grgit.branch.current.name'")
-            group(1)
-        }
-        logger.quiet "Setting version: $version"
-        file('build.gradle').with { f ->
-            logger.quiet "Updating: $f"
-            f.write(
-                    f.getText(charset).
-                            replaceAll('(?m)^[ \\t]*version[ \\t]*= [\'"]([^\'"]+)[\'"][ \\t]*(//#prepare-release)[ \\t]*$', "version = '$version' \$2"),
-                    charset)
-        }
-        file('src/main/resources/META-INF/plugin.xml').with { f ->
-            logger.quiet "Updating: $f"
-            f.write(
-                    f.getText(charset).
-                            replaceAll('(?m)(.*)/idea-run-popup/.*/images/(.*<!--#prepare-release-->)[ \\t]*$', "\$1/idea-run-popup/$version/images/\$2"),
-                    charset)
+patchPluginXml {
+
+    String repoContentRootUrl = 'https://raw.githubusercontent.com/Abnaxos/idea-run-popup/'
+    if (currentBranch == 'master') {
+        repoContentRootUrl += project.version
+    } else {
+        repoContentRootUrl += 'develop'
+    }
+
+    inputs.property 'repoContentRootUrl', repoContentRootUrl
+
+    doLast {
+        new File(destinationDir, 'plugin.xml').with {
+            setText(getText('UTF-8').replace('@@repoContentRootUrl@@', repoContentRootUrl), 'UTF-8')
         }
     }
 }
