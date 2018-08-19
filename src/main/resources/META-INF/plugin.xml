@@ -41,16 +41,34 @@
     etc.)</p>
 
     <p>The popup menu is searchable and also handles searching for the first
-    letters of words (e.g. search for «riwp» to find «Run IDEA with
-    plugin»).</p>
+    letters of words (e.g. search for "riwp" to find "Run IDEA with
+    plugin").</p>
 
     <p>It can be both placed into the toolbar or bound to a key. It can
     replace the default run dropdown.</p>
 
-    <p>See the <a href="https://github.com/Abnaxos/idea-run-popup>Project’s
+    <p>See the <a href="https://github.com/Abnaxos/idea-run-popup">Project’s
     GitHub page</a> for more information.</p>
 
-  ]]></description>
+    <h3>Configuration Tips</h3>
+    <ul>
+
+      <li>Remove <i>" Select Run/Debug Configuration"</i>
+        action and <i>"Run/Debug"</i> group from your toolbar and add instead
+        <i>"Run Popup"</i>, <i>"Stop"</i> and <i>"Edit Configurations..."</i>.
+        The <i>"Stop"</i> action will show a drop-down to choose which process
+        to stop when more than one is running (if only one process is running,
+        it will just stop that one.
+      </li>
+
+      <li>By default, the run popup is bound to <i>Alt-X</i>. You may also
+        want to bind <i>"Stop"</i> to <i>Alt-Shift-X</i> to get a stop
+        popup.
+      </li>
+
+    </ul>
+
+    ]]></description>
 
   <change-notes><![CDATA[
     ]]>
