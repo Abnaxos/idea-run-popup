@@ -1,4 +1,5 @@
 import java.time.LocalDateTime
+import org.ajoberstar.grgit.Grgit
 
 
 buildDir = 'target'
@@ -6,11 +7,12 @@ buildDir = 'target'
 buildscript {
     repositories {
         maven {
-            url "https://plugins.gradle.org/m2/"
+            url 'https://plugins.gradle.org/m2/'
         }
     }
     dependencies {
-        classpath "gradle.plugin.org.jetbrains.intellij.plugins:gradle-intellij-plugin:0.3.6"
+        classpath 'gradle.plugin.org.jetbrains.intellij.plugins:gradle-intellij-plugin:0.3.6'
+        classpath 'org.ajoberstar:grgit:1.7.2'
     }
 }
 
@@ -18,7 +20,7 @@ apply plugin:'java'
 apply plugin:'idea'
 apply plugin:'org.jetbrains.intellij'
 
-version = '1.0-SNAPSHOT' //#prepare-release
+version = 'SNAPSHOT' //#prepare-release
 group = 'ch.raffael.idea.plugins.runpopup'
 
 intellij {
@@ -35,7 +37,7 @@ task updateLicense() {
     outputs.file licenseFile
 
     doFirst {
-        String lic = new XmlSlurper().parse(copyrightProfile).copyright.option.find({it.@name=='notice'}).@value as String
+        String lic = new XmlSlurper().parse(copyrightProfile as File).copyright.option.find({it.@name=='notice'}).@value as String
         lic = lic.replaceAll('(\\\$|&#36;)today.year(\\b)', "${LocalDateTime.now().year}\$2")
         licenseFile.text = lic
     }
@@ -50,20 +52,28 @@ buildPlugin {
 //noinspection GroovyAssignabilityCheck
 task prepareRelease() {
     final charset = 'UTF-8'
+    final releasePrefix = ''
     doFirst {
+        //noinspection GroovyAssignabilityCheck
+        def grgit = Grgit.open(dir: project.rootDir)
+        //noinspection GroovyAssignabilityCheck
+        def version = (~".*/$releasePrefix(\\d+(\\.\\d+)+)").matcher(grgit.branch.current.name).with {
+            if (!matches()) throw new GradleException("Cannot determine version from branch name '$grgit.branch.current.name'")
+            group(1)
+        }
+        logger.quiet "Setting version: $version"
         file('build.gradle').with { f ->
             logger.quiet "Updating: $f"
-
             f.write(
                     f.getText(charset).
-                            replaceAll('(?m)^[ \\t]*version\\s*=.*\\D(\\d[-.\\d]+)-SNAPSHOT.*//#prepare-release[ \\t]*$', 'version = \'$1\''),
+                            replaceAll('(?m)^[ \\t]*version[ \\t]*= [\'"]([^\'"]+)[\'"][ \\t]*(//#prepare-release)[ \\t]*$', "version = '$version' \$2"),
                     charset)
         }
         file('src/main/resources/META-INF/plugin.xml').with { f ->
             logger.quiet "Updating: $f"
             f.write(
                     f.getText(charset).
-                            replaceAll('(?m)(.*)/develop/images/(.*)<!--#prepare-release-->[ \\t]*$', '$1/master/images/$2'),
+                            replaceAll('(?m)(.*)/idea-run-popup/.*/images/(.*<!--#prepare-release-->)[ \\t]*$', "\$1/idea-run-popup/$version/images/\$2"),
                     charset)
         }
     }
