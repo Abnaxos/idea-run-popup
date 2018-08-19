@@ -1,3 +1,6 @@
+import java.time.LocalDateTime
+
+
 buildDir = 'target'
 
 buildscript {
@@ -20,4 +23,21 @@ group = 'ch.raffael.idea.plugins.runpopup'
 
 intellij {
     version = 'IC-2018.2.1'
+}
+
+//noinspection GroovyAssignabilityCheck
+task updateLicense() {
+
+    ext.copyrightProfile = file(file('.idea/copyright/MIT.xml'))
+    ext.licenseFile = file('LICENSE.txt')
+
+    inputs.file copyrightProfile
+    outputs.file licenseFile
+
+    doFirst {
+        String lic = new XmlSlurper().parse(copyrightProfile).copyright.option.find({it.@name=='notice'}).@value as String
+        lic = lic.replaceAll('(\\\$|&#36;)today.year(\\b)', "${LocalDateTime.now().year}\$2")
+        licenseFile.text = lic
+    }
+
 }

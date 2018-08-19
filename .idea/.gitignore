@@ -15,3 +15,8 @@
 /codeStyles/*
 !/codeStyles/codeStyleConfig.xml
 !/codeStyles/Project.xml
+
+!/copyright/
+/copyright/*
+!/copyright/MIT.xml
+!/copyright/profiles_settings.xml
