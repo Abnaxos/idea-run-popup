@@ -1,5 +1,3 @@
-#!/.idea/.gitignore
-#!/idea-run-popup.iml
-
-/out/
-/idea-run-popup.jar
+.gradle/
+out/
+target/

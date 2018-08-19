@@ -1,0 +1,23 @@
+buildDir = 'target'
+
+buildscript {
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath "gradle.plugin.org.jetbrains.intellij.plugins:gradle-intellij-plugin:0.3.6"
+    }
+}
+
+apply plugin:'java'
+apply plugin:'idea'
+apply plugin:'org.jetbrains.intellij'
+
+version = '1.0-SNAPSHOT'
+group = 'ch.raffael.idea.plugins.runpopup'
+
+intellij {
+    version = 'IC-2018.2.1'
+}

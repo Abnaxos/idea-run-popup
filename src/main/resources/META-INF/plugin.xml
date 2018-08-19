@@ -2,7 +2,7 @@
 <idea-plugin>
   <id>ch.raffael.idea.plugins.runpopup</id>
   <name>Run Popup</name>
-  <version>1.0</version>
+  <version>patched-by-grade</version>
   <vendor email="herzog@raffael.ch" url="https://github.com/Abnaxos/idea-run-popup">Raffael Herzog</vendor>
 
   <description><![CDATA[
@@ -34,11 +34,9 @@
     ]]>
   </change-notes>
 
-  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
-  <idea-version since-build="163"/>
-
   <actions>
     <action class="ch.raffael.idea.plugins.runpopup.RunPopupAction" id="ch.raffael.idea.plugins.runpopup.RunPopup" popup="true">
+      <keyboard-shortcut first-keystroke="alt X" keymap="$default"/>
       <!--<add-to-group group-id="ToolbarRunGroup" anchor="before" relative-to-action="RunConfiguration"/>-->
     </action>
   </actions>

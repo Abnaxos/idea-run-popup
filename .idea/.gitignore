@@ -1,8 +1,17 @@
 *
 !.gitignore
-!/modules.xml
-!/vcs.xml
 !/encodings.xml
 
 !/runConfigurations/
-!/runConfigurations/*
+/runConfigurations/*
+!/runConfigurations/Run_IDE.xml
+
+!/inspectionProfiles/
+/inspectionProfiles/*
+!/inspectionProfiles/profiles_settings.xml
+!/inspectionProfiles/Project_Default.xml
+
+!/codeStyles/
+/codeStyles/*
+!/codeStyles/codeStyleConfig.xml
+!/codeStyles/Project.xml
