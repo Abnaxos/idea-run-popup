@@ -19,35 +19,12 @@ apply plugin:'java'
 apply plugin:'idea'
 apply plugin:'org.jetbrains.intellij'
 
+version = versionFromGit()
+
 intellij {
     version = 'IC-2018.3'
     updateSinceUntilBuild = false
 }
-
-Grgit git
-try {
-//noinspection GroovyAssignabilityCheck
-    git = Grgit.open(dir: project.rootDir)
-} catch (e) {
-    throw new ProjectConfigurationException("Cannot open git repository: $e", e)
-}
-String currentBranch = git.branch.current.name
-
-//noinspection GroovyAssignabilityCheck
-if (currentBranch == 'master') {
-    List<String> candidates = git.tag.list()*.name?.findAll({it =~ /\d+(\.\d+)+/})
-    if (candidates.size() != 1) {
-        throw new ProjectConfigurationException("No distinct version tag found; candidates: $candidates", null)
-    }
-    version = candidates[0]
-} else {
-    //noinspection GroovyAssignabilityCheck
-    version = (~/.*\/(\d+(\.\d+)+)/).matcher(currentBranch).with {
-        matches() ? "${group(1)}-SNAPSHOT" : 'SNAPSHOT'
-    }
-}
-logger.quiet "Version from git: $project.version"
-project.group = 'ch.raffael.idea.plugins.runpopup'
 
 //noinspection GroovyAssignabilityCheck
 task updateLicense() {
@@ -72,12 +49,11 @@ buildPlugin {
 }
 
 patchPluginXml {
-
     String repoContentRootUrl = 'https://raw.githubusercontent.com/Abnaxos/idea-run-popup/'
-    if (currentBranch == 'master') {
-        repoContentRootUrl += project.version
-    } else {
+    if (version.contains('SNAPSHOT')) {
         repoContentRootUrl += 'develop'
+    } else {
+        repoContentRootUrl += project.version
     }
 
     inputs.property 'repoContentRootUrl', repoContentRootUrl
@@ -87,4 +63,36 @@ patchPluginXml {
             setText(getText('UTF-8').replace('@@repoContentRootUrl@@', repoContentRootUrl), 'UTF-8')
         }
     }
+}
+
+//
+// versioning from gitflow
+//
+@SuppressWarnings("UnnecessaryQualifiedReference")
+def versionFromGit() {
+    org.ajoberstar.grgit.Grgit git
+    try {
+        //noinspection GroovyAssignabilityCheck
+        git = org.ajoberstar.grgit.Grgit.open(dir: project.rootDir)
+    } catch (e) {
+        throw new ProjectConfigurationException("Cannot open git repository: $e", e)
+    }
+    String currentBranch = git.branch.current.name
+
+    def gitVersion
+    //noinspection GroovyAssignabilityCheck
+    if (currentBranch == 'master') {
+        List<String> candidates = git.tag.list().findAll({it.commit==git.head()})*.name?.findAll({it =~ /\d+(\.\d+)+/})
+        if (candidates.size() != 1) {
+            throw new ProjectConfigurationException("No distinct version tag found; candidates: $candidates", null)
+        }
+        gitVersion = candidates[0]
+    } else {
+        //noinspection GroovyAssignabilityCheck
+        gitVersion = (~/.*\/(\d+(\.\d+)+)/).matcher(currentBranch).with {
+            matches() ? "${group(1)}-SNAPSHOT" : 'SNAPSHOT'
+        }
+    }
+    logger.quiet "Version from git: $gitVersion"
+    return gitVersion
 }
