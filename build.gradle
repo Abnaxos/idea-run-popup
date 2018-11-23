@@ -1,6 +1,4 @@
 import java.time.LocalDateTime
-import org.ajoberstar.grgit.Grgit
-
 
 buildscript {
     repositories {
