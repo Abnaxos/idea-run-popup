@@ -60,14 +60,11 @@ public class RunPopupAction extends AnAction implements CustomComponentAction{
         if ( project == null ) {
             return;
         }
-        JComponent actionButton = null;
+        JComponent actionComponent = e.getPresentation().getClientProperty(COMPONENT_KEY);
         RunPopupActionGroup group = new RunPopupActionGroup();
-        if ( ActionPlaces.isToolbarPlace(e.getPlace()) ) {
-            actionButton = (JComponent)e.getPresentation().getClientProperty(CUSTOM_COMPONENT_PROPERTY);
-        }
         JBPopupFactory popupFactory = JBPopupFactory.getInstance();
         ListPopup popup = popupFactory.createActionGroupPopup(
-                actionButton == null ? "Run" : null,
+                actionComponent == null ? "Run" : null,
                 group,
                 dataContext, JBPopupFactory.ActionSelectionAid.SPEEDSEARCH, false);
         //popup.addListener(new JBPopupAdapter() {
@@ -86,11 +83,11 @@ public class RunPopupAction extends AnAction implements CustomComponentAction{
         //        });
         //    }
         //});
-        if ( actionButton == null ) {
+        if ( actionComponent == null ) {
             popup.showCenteredInCurrentWindow(project);
         }
         else {
-            popup.show(RelativePoint.getSouthWestOf(actionButton));
+            popup.show(RelativePoint.getSouthWestOf(actionComponent));
         }
     }
 

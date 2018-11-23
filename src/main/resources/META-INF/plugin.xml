@@ -22,6 +22,7 @@
   -->
 
 <idea-plugin>
+  <idea-version sinc-build="181"/>
   <id>ch.raffael.idea.plugins.runpopup</id>
   <name>Run Popup</name>
   <version>patched-by-gradle</version>

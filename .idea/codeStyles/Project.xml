@@ -83,7 +83,7 @@
           <emptyLine />
           <package name="org.junit" withSubpackages="true" static="false" />
           <package name="org.easymock" withSubpackages="true" static="false" />
-          <package name="spock.*" withSubpackages="true" static="false" />
+          <package name="spock" withSubpackages="true" static="false" />
           <emptyLine />
           <package name="org.apache.commons.logging" withSubpackages="true" static="false" />
           <package name="org.slf4j" withSubpackages="true" static="false" />
