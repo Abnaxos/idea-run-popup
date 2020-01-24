@@ -70,7 +70,10 @@ class RunConfActionGroup extends ActionGroup {
         if ( project != null ) {
             RunConfigurationUseTracker useTracker = project.getComponent(RunConfigurationUseTracker.class);
             Executor executor = findExecutor(useTracker.getLastRunExecutorId(runConfiguration.getUniqueID()));
-            ExecutionUtil.runConfiguration(runConfiguration, executor);
+            if (executor != null) {
+                useTracker.touchRunConfiguration(runConfiguration.getUniqueID(), executor.getId());
+                ExecutionUtil.runConfiguration(runConfiguration, executor);
+            }
         }
     }
 
@@ -148,7 +151,12 @@ class RunConfActionGroup extends ActionGroup {
             children.add(new AnAction(executor.getStartActionText(), null, executor.getIcon()) {
                 @Override
                 public void actionPerformed(AnActionEvent e) {
-                    ExecutionUtil.runConfiguration(runConfiguration, executor);
+                    Project project = e.getProject();
+                    if (project != null) {
+                        RunConfigurationUseTracker useTracker = project.getComponent(RunConfigurationUseTracker.class);
+                        useTracker.touchRunConfiguration(runConfiguration.getUniqueID(), executor.getId());
+                        ExecutionUtil.runConfiguration(runConfiguration, executor);
+                    }
                 }
 
                 @Override

@@ -68,15 +68,10 @@ public class RunConfigurationUseTracker extends AbstractProjectComponent impleme
         conn.subscribe(ExecutionManager.EXECUTION_TOPIC, new ExecutionListener() {
             @Override
             public void processStartScheduled(@NotNull String executorId, @NotNull ExecutionEnvironment env) {
-                if ( env.getRunnerAndConfigurationSettings() != null ) {
-                    String confId = env.getRunnerAndConfigurationSettings().getUniqueID();
-                    synchronized ( stateLock ) {
-                        RunConfInfo rci = state.runConfInfo.computeIfAbsent(confId, (k) -> new RunConfInfo(confId, executorId));
-                        rci.timestamp = System.currentTimeMillis();
-                        rci.executorId = executorId;
-                        cleanupObsoleteStateEntries();
-                    }
-                }
+                //if ( env.getRunnerAndConfigurationSettings() != null ) {
+                //    String confId = env.getRunnerAndConfigurationSettings().getUniqueID();
+                //    touchRunConfiguration(confId, executorId);
+                //}
             }
 
             @Override
@@ -107,6 +102,15 @@ public class RunConfigurationUseTracker extends AbstractProjectComponent impleme
             }
 
         });
+    }
+
+    void touchRunConfiguration(@NotNull String confId, @NotNull String executorId) {
+        synchronized ( stateLock ) {
+            RunConfInfo rci = state.runConfInfo.computeIfAbsent(confId, (k) -> new RunConfInfo(confId, executorId));
+            rci.timestamp = System.currentTimeMillis();
+            rci.executorId = executorId;
+            cleanupObsoleteStateEntries();
+        }
     }
 
     @Nullable

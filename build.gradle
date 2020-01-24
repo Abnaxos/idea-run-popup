@@ -7,7 +7,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'gradle.plugin.org.jetbrains.intellij.plugins:gradle-intellij-plugin:0.3.6'
+        classpath 'gradle.plugin.org.jetbrains.intellij.plugins:gradle-intellij-plugin:0.4.15'
         classpath 'org.ajoberstar:grgit:1.7.2'
     }
 }
@@ -20,8 +20,9 @@ apply plugin:'org.jetbrains.intellij'
 version = versionFromGit()
 
 intellij {
-    version = 'IC-2018.3'
+    version = '193.6015.39' // 2019.3.2
     updateSinceUntilBuild = false
+    sandboxDirectory = 'idea-sandbox'
 }
 
 //noinspection GroovyAssignabilityCheck
