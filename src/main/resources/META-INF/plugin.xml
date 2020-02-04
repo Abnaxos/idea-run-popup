@@ -22,7 +22,7 @@
   -->
 
 <idea-plugin>
-  <idea-version sinc-build="181"/>
+  <idea-version since-build="181"/>
   <id>ch.raffael.idea.plugins.runpopup</id>
   <name>Run Popup</name>
   <version>patched-by-gradle</version>
@@ -74,6 +74,19 @@
     ]]></description>
 
   <change-notes><![CDATA[
+
+    <h3>1.1.0</h3>
+    <ul>
+      <li>Set timestamp on choosing from popup instead of running the configuration.
+          This way, tracking also works when delegating build/run actions to an
+          external build system.</li>
+    </ul>
+
+    <h3>1.0.1</h3>
+    <ul>
+     <li>Compatibility fix for IDEA 2018.3</li>
+    </ul>
+
     ]]>
   </change-notes>
 
