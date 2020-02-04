@@ -17,7 +17,8 @@ apply plugin:'java'
 apply plugin:'idea'
 apply plugin:'org.jetbrains.intellij'
 
-version = versionFromGit()
+ext.git = local.GitInfo.load(project)
+version = git.version
 
 intellij {
     version = '193.6015.39' // 2019.3.2
@@ -62,36 +63,4 @@ patchPluginXml {
             setText(getText('UTF-8').replace('@@repoContentRootUrl@@', repoContentRootUrl), 'UTF-8')
         }
     }
-}
-
-//
-// versioning from gitflow
-//
-@SuppressWarnings("UnnecessaryQualifiedReference")
-def versionFromGit() {
-    org.ajoberstar.grgit.Grgit git
-    try {
-        //noinspection GroovyAssignabilityCheck
-        git = org.ajoberstar.grgit.Grgit.open(dir: project.rootDir)
-    } catch (e) {
-        throw new ProjectConfigurationException("Cannot open git repository: $e", e)
-    }
-    String currentBranch = git.branch.current.name
-
-    def gitVersion
-    //noinspection GroovyAssignabilityCheck
-    if (currentBranch == 'master') {
-        List<String> candidates = git.tag.list().findAll({it.commit==git.head()})*.name?.findAll({it =~ /\d+(\.\d+)+/})
-        if (candidates.size() != 1) {
-            throw new ProjectConfigurationException("No distinct version tag found; candidates: $candidates", null)
-        }
-        gitVersion = candidates[0]
-    } else {
-        //noinspection GroovyAssignabilityCheck
-        gitVersion = (~/.*\/(\d+(\.\d+)+)/).matcher(currentBranch).with {
-            matches() ? "${group(1)}-SNAPSHOT" : 'SNAPSHOT'
-        }
-    }
-    logger.quiet "Version from git: $gitVersion"
-    return gitVersion
 }
