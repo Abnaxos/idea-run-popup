@@ -22,11 +22,13 @@
   -->
 
 <idea-plugin>
-  <idea-version since-build="181"/>
+  <idea-version since-build="183"/>
   <id>ch.raffael.idea.plugins.runpopup</id>
   <name>Run Popup</name>
   <version>patched-by-gradle</version>
   <vendor email="herzog@raffael.ch" url="https://github.com/Abnaxos/idea-run-popup">Raffael Herzog</vendor>
+
+  <depends>com.intellij.modules.platform</depends>
 
   <description><![CDATA[
 
