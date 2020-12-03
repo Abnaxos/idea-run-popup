@@ -24,6 +24,7 @@ package ch.raffael.idea.plugins.runpopup;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import com.intellij.execution.RunManager;
@@ -47,6 +48,7 @@ class RunPopupActionGroup extends ActionGroup {
 
     private static final AnAction[] NO_CHILDREN = new AnAction[0];
 
+    @Nullable
     private Integer firstNonFavoriteIndex = null;
 
     RunPopupActionGroup() {
@@ -118,7 +120,7 @@ class RunPopupActionGroup extends ActionGroup {
                 }
             }
         });
-        return children.toArray(new AnAction[children.size()]);
+        return children.toArray(AnAction.EMPTY_ARRAY);
     }
 
     private boolean appendRunConfigurationActions(Project project, List<AnAction> target, boolean favorites, boolean sort) {
@@ -136,7 +138,7 @@ class RunPopupActionGroup extends ActionGroup {
     }
 
     @SuppressWarnings("unused")
-    Integer getFirstNonFavoriteIndex() {
-        return firstNonFavoriteIndex;
+    Optional<Integer> getFirstNonFavoriteIndex() {
+        return Optional.ofNullable(firstNonFavoriteIndex);
     }
 }

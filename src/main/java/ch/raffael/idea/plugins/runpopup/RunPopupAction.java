@@ -39,6 +39,7 @@ import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.ListPopup;
 import com.intellij.ui.LayeredIcon;
 import com.intellij.ui.awt.RelativePoint;
+import org.jetbrains.annotations.NotNull;
 
 
 /**
@@ -67,22 +68,6 @@ public class RunPopupAction extends AnAction implements CustomComponentAction{
                 actionComponent == null ? "Run" : null,
                 group,
                 dataContext, JBPopupFactory.ActionSelectionAid.SPEEDSEARCH, false);
-        //popup.addListener(new JBPopupAdapter() {
-        //    @Override
-        //    public void beforeShown(LightweightWindowEvent event) {
-        //        JComponent component = event.asPopup().getContent();
-        //        component.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("TAB"), "favorites-others");
-        //        component.getActionMap().put("favorites-others", new AbstractAction() {
-        //            @Override
-        //            public void actionPerformed(ActionEvent e) {
-        //                ListPopupStep step = popup.getListStep();
-        //                if ( group.getFirstNonFavoriteIndex() != null ) {
-        //                }
-        //                System.out.println("TAB");
-        //            }
-        //        });
-        //    }
-        //});
         if ( actionComponent == null ) {
             popup.showCenteredInCurrentWindow(project);
         }
@@ -92,11 +77,8 @@ public class RunPopupAction extends AnAction implements CustomComponentAction{
     }
 
     @Override
-    public JComponent createCustomComponent(Presentation presentation) {
+    public @NotNull JComponent createCustomComponent(@NotNull Presentation presentation, @NotNull String place) {
+        // TODO (2020-12-03) now we can handle places :)
         return new ActionButton(this, presentation, ActionPlaces.TOOLBAR, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE);
     }
-    //@Override
-    //public JComponent createCustomComponent(Presentation presentation) {
-    //    return new JLabel("blubber di blubb");
-    //}
 }

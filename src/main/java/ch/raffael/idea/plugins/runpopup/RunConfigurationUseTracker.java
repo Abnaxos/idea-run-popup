@@ -34,8 +34,8 @@ import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
-import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.messages.MessageBusConnection;
@@ -50,28 +50,29 @@ import org.jetbrains.annotations.Nullable;
  * @author Raffael Herzog
  */
 @State(name="ch.raffael.plugins.idea.runpopup.RunConfigurationUseTracker")
-public class RunConfigurationUseTracker extends AbstractProjectComponent implements PersistentStateComponent<RunConfigurationUseTracker.State> {
+public class RunConfigurationUseTracker implements ProjectComponent, PersistentStateComponent<RunConfigurationUseTracker.State> {
 
     private final Object stateLock = new Object();
+    private final Project project;
     private State state = new State();
 
     private final Map<String, Integer> runningConfigurations = new ConcurrentHashMap<>(4, .7f, 1);
 
     public RunConfigurationUseTracker(Project project) {
-        super(project);
+        this.project = project;
     }
 
     @Override
     public void projectOpened() {
         cleanupObsoleteStateEntries();
-        MessageBusConnection conn = myProject.getMessageBus().connect();
+        MessageBusConnection conn = project.getMessageBus().connect();
         conn.subscribe(ExecutionManager.EXECUTION_TOPIC, new ExecutionListener() {
             @Override
             public void processStartScheduled(@NotNull String executorId, @NotNull ExecutionEnvironment env) {
-                //if ( env.getRunnerAndConfigurationSettings() != null ) {
-                //    String confId = env.getRunnerAndConfigurationSettings().getUniqueID();
-                //    touchRunConfiguration(confId, executorId);
-                //}
+                if ( env.getRunnerAndConfigurationSettings() != null ) {
+                    String confId = env.getRunnerAndConfigurationSettings().getUniqueID();
+                    touchRunConfiguration(confId, executorId);
+                }
             }
 
             @Override
@@ -89,14 +90,7 @@ public class RunConfigurationUseTracker extends AbstractProjectComponent impleme
                     return;
                 }
                 runningConfigurations.compute(config.getUniqueID(), (k, v) -> {
-                    Integer result;
-                    if ( v == null ) {
-                        result = delta;
-                    }
-                    else {
-                        result = v + delta;
-                    }
-                    //noinspection ConstantConditions
+                    int result = (v == null ? delta : v + delta);
                     return result <= 0 ? null : result;
                 });
             }
@@ -200,7 +194,7 @@ public class RunConfigurationUseTracker extends AbstractProjectComponent impleme
     }
 
     private void cleanupObsoleteStateEntries() {
-        Set<String> knownConfIds = RunManager.getInstance(myProject).getAllSettings().stream()
+        Set<String> knownConfIds = RunManager.getInstance(project).getAllSettings().stream()
                 .map(RunnerAndConfigurationSettings::getUniqueID)
                 .collect(Collectors.toSet());
         synchronized ( stateLock ) {
@@ -228,6 +222,7 @@ public class RunConfigurationUseTracker extends AbstractProjectComponent impleme
     @SuppressWarnings("WeakerAccess")
     public static final class RunConfInfo {
         public String confId;
+        @Nullable
         public String executorId;
         public long timestamp = System.currentTimeMillis();
         public boolean favorite = false;

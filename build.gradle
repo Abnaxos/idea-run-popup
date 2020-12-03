@@ -7,7 +7,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'gradle.plugin.org.jetbrains.intellij.plugins:gradle-intellij-plugin:0.4.16'
+        classpath 'org.jetbrains.intellij.plugins:gradle-intellij-plugin:0.6.5'
         classpath 'org.ajoberstar:grgit:1.7.2'
     }
 }
@@ -20,8 +20,16 @@ apply plugin:'org.jetbrains.intellij'
 ext.git = local.GitInfo.load(project)
 version = git.version
 
+sourceCompatibility = targetCompatibility = '11'
+
+repositories {
+    mavenCentral()
+}
+
 intellij {
-    version = '193.6015.39' // 2019.3.2
+    version = '202.8194.7' // 2020.2.4
+//    version = '203.5981.155' // 2020.3.0
+    updateSinceUntilBuild = false
     updateSinceUntilBuild = false
     sandboxDirectory = 'idea-sandbox'
 }

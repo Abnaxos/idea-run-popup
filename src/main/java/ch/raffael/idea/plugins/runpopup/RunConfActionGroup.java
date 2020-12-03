@@ -28,7 +28,6 @@ import java.util.List;
 import javax.swing.Icon;
 
 import com.intellij.execution.Executor;
-import com.intellij.execution.ProgramRunnerUtil;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.execution.runners.ExecutionUtil;
@@ -40,7 +39,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.actionSystem.ToggleAction;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.LayeredIcon;
@@ -60,7 +58,7 @@ class RunConfActionGroup extends ActionGroup {
     RunConfActionGroup(RunnerAndConfigurationSettings runConfiguration) {
         super(runConfiguration.getName(), null,
                 new CompoundIcon(runConfiguration.getType().getIcon(),
-                        Extensions.getExtensions(Executor.EXECUTOR_EXTENSION_NAME)[0].getIcon()));
+                        Executor.EXECUTOR_EXTENSION_NAME.getExtensionList().get(0).getIcon()));
         this.runConfiguration = runConfiguration;
     }
 
@@ -79,17 +77,17 @@ class RunConfActionGroup extends ActionGroup {
 
     @Override
     public void update(AnActionEvent e) {
-        Project project = e.getProject();
+        var project = e.getProject();
         if ( project != null ) {
-            RunConfigurationUseTracker useTracker = project.getComponent(RunConfigurationUseTracker.class);
-            Executor executor = findExecutor(useTracker.getLastRunExecutorId(runConfiguration.getUniqueID()));
+            var useTracker = project.getComponent(RunConfigurationUseTracker.class);
+            var executor = findExecutor(useTracker.getLastRunExecutorId(runConfiguration.getUniqueID()));
             if ( executor == null ) {
                 e.getPresentation().setVisible(false);
                 e.getPresentation().setEnabled(false);
             }
             else {
-                Icon confIcon = runConfiguration.getConfiguration().getIcon();
-                Icon executorIcon = executor.getIcon();
+                var confIcon = runConfiguration.getConfiguration().getIcon();
+                var executorIcon = executor.getIcon();
                 try {
                     runConfiguration.checkSettings();
                 }
@@ -104,7 +102,8 @@ class RunConfActionGroup extends ActionGroup {
                     //confIcon = ExecutionUtil.getLiveIndicator(confIcon);
                     executorIcon = ExecutionUtil.getLiveIndicator(executorIcon);
                 }
-                e.getPresentation().setIcon(new CompoundIcon(confIcon, executorIcon));
+                e.getPresentation().setIcon(
+                        confIcon == null ? executorIcon : new CompoundIcon(confIcon, executorIcon));
                 if ( runConfiguration.isTemporary() ) {
                     e.getPresentation().setIcon(getTemporaryIcon(e.getPresentation().getIcon()));
                 }
@@ -119,7 +118,7 @@ class RunConfActionGroup extends ActionGroup {
 
     @Nullable
     private Executor findExecutor(@Nullable String id) {
-        Executor[] executors = Extensions.getExtensions(Executor.EXECUTOR_EXTENSION_NAME);
+        var executors = Executor.EXECUTOR_EXTENSION_NAME.getExtensionList();
         if ( id != null ) {
             for ( Executor executor : executors ) {
                 if ( executor.getId().equals(id) ) {
@@ -138,14 +137,14 @@ class RunConfActionGroup extends ActionGroup {
     }
 
     private boolean canRunWith(String executorId) {
-        ProgramRunner runner = ProgramRunnerUtil.getRunner(executorId, runConfiguration);
+        var runner = ProgramRunner.getRunner(executorId, runConfiguration.getConfiguration());
         return runner != null && runner.canRun(executorId, runConfiguration.getConfiguration());
     }
 
     @NotNull
     @Override
     public AnAction[] getChildren(@Nullable AnActionEvent e) {
-        Executor[] executors = Extensions.getExtensions(Executor.EXECUTOR_EXTENSION_NAME);
+        var executors = Executor.EXECUTOR_EXTENSION_NAME.getExtensionList();
         List<AnAction> children = new ArrayList<>();
         for ( Executor executor : executors ) {
             children.add(new AnAction(executor.getStartActionText(), null, executor.getIcon()) {
@@ -184,7 +183,7 @@ class RunConfActionGroup extends ActionGroup {
                 }
             }
         });
-        return children.toArray(new AnAction[children.size()]);
+        return children.toArray(AnAction.EMPTY_ARRAY);
     }
 
     @Override
