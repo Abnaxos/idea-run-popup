@@ -35,6 +35,7 @@
     <p>A popup menu for IDEA to provide easier access to run
     configurations.</p>
 
+    <!--suppress HtmlUnknownTarget -->
     <img src="@@repoContentRootUrl@@/images/run-popup.png" alt="Run Popup">
 
     <p>The popup menu shows a list of run configurations in two sections:
@@ -76,6 +77,15 @@
     ]]></description>
 
   <change-notes><![CDATA[
+
+    <h3>1.1.1</h3>
+    <ul>
+      <li>Set timestamp both on choosing from popup <em>and</em> running the
+          configuration in some other way. The second one may not work when
+          delegating build/run actions to an external build system, but for
+          all other run configurations, it'll work as expected.</li>
+      <li>Compatibility with 2020.3.</li>
+    </ul>
 
     <h3>1.1.0</h3>
     <ul>
