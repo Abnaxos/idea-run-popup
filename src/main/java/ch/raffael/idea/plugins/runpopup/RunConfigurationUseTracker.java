@@ -233,7 +233,6 @@ public final class RunConfigurationUseTracker implements PersistentStateComponen
     }
 
     public static class MyExecutionListener implements ExecutionListener {
-
         @Override
         public void processStartScheduled(@NotNull String executorId, @NotNull ExecutionEnvironment env) {
             if (env.getRunnerAndConfigurationSettings() != null) {

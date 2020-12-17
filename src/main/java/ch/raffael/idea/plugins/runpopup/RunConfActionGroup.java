@@ -31,7 +31,6 @@ import com.intellij.execution.Executor;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.execution.runners.ExecutionUtil;
-import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -97,11 +96,7 @@ class RunConfActionGroup extends ActionGroup {
                     confIcon = (new LayeredIcon(confIcon,
                             AllIcons.RunConfigurations.InvalidConfigurationLayer));
                 }
-                //if ( runConfiguration.isTemporary() ) {
-                //    confIcon = getTemporaryIcon(confIcon);
-                //}
                 if ( useTracker.isRunning(runConfiguration.getUniqueID()) ) {
-                    //confIcon = ExecutionUtil.getLiveIndicator(confIcon);
                     executorIcon = ExecutionUtil.getLiveIndicator(executorIcon);
                 }
                 e.getPresentation().setIcon(
@@ -120,27 +115,11 @@ class RunConfActionGroup extends ActionGroup {
 
     @Nullable
     private Executor findExecutor(@Nullable String id) {
-        var executors = Executor.EXECUTOR_EXTENSION_NAME.getExtensionList();
-        if ( id != null ) {
-            for ( Executor executor : executors ) {
-                if ( executor.getId().equals(id) ) {
-                    return executor;
-                }
-            }
-        }
-        else {
-            for ( Executor executor : executors ) {
-                if ( canRunWith(executor.getId()) ) {
-                    return executor;
-                }
-            }
-        }
-        return null;
+        return IdeaExecutors.findExecutor(runConfiguration, id);
     }
 
     private boolean canRunWith(String executorId) {
-        var runner = ProgramRunner.getRunner(executorId, runConfiguration.getConfiguration());
-        return runner != null && runner.canRun(executorId, runConfiguration.getConfiguration());
+        return IdeaExecutors.canRunWith(runConfiguration, executorId);
     }
 
     @NotNull
