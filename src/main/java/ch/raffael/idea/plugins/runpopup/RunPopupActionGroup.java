@@ -30,10 +30,12 @@ import java.util.stream.Stream;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.actionSystem.ToggleAction;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,7 +48,10 @@ import org.jetbrains.annotations.Nullable;
  */
 class RunPopupActionGroup extends ActionGroup {
 
+    private static final Logger LOG = Logger.getInstance(RunPopupActionGroup.class);
+
     private static final AnAction[] NO_CHILDREN = new AnAction[0];
+    private static final String EDIT_RUN_CONFIGURATIONS_ACTION_ID = "editRunConfigurations";
 
     @Nullable
     private Integer firstNonFavoriteIndex = null;
@@ -78,48 +83,56 @@ class RunPopupActionGroup extends ActionGroup {
             firstNonFavoriteIndex = null;
         }
         children.add(new Separator("Options"));
-        children.add(new ToggleAction("Order Favorites by Last Used") {
+        children.add(new ActionGroup("Options", true) {
             @Override
-            public boolean isSelected(AnActionEvent e) {
-                Project project = e.getProject();
-                //noinspection SimplifiableIfStatement
-                if ( project != null ) {
-                    return project.getComponent(RunConfigurationUseTracker.class).isOrderFavoritesByLastUsed();
-                }
-                else {
-                    return false;
-                }
-            }
+            public AnAction @NotNull [] getChildren(@Nullable AnActionEvent e) {
+                return new AnAction[] {
+                        new ToggleAction("Order Favorites by Last Used") {
+                            @Override
+                            public boolean isSelected(AnActionEvent e) {
+                                Project project = e.getProject();
+                                //noinspection SimplifiableIfStatement
+                                if (project != null) {
+                                    return project.getComponent(RunConfigurationUseTracker.class).isOrderFavoritesByLastUsed();
+                                } else {
+                                    return false;
+                                }
+                            }
 
-            @Override
-            public void setSelected(AnActionEvent e, boolean state) {
-                Project project = e.getProject();
-                if ( project != null ) {
-                    project.getComponent(RunConfigurationUseTracker.class).setOrderFavoritesByLastUsed(state);
-                }
+                            @Override
+                            public void setSelected(AnActionEvent e, boolean state) {
+                                Project project = e.getProject();
+                                if (project != null) {
+                                    project.getComponent(RunConfigurationUseTracker.class).setOrderFavoritesByLastUsed(state);
+                                }
+                            }
+                        },
+                        new ToggleAction("Order Others by Last Used") {
+                            @Override
+                            public boolean isSelected(AnActionEvent e) {
+                                Project project = e.getProject();
+                                //noinspection SimplifiableIfStatement
+                                if (project != null) {
+                                    return project.getComponent(RunConfigurationUseTracker.class).isOrderOthersByLastUsed();
+                                } else {
+                                    return false;
+                                }
+                            }
+
+                            @Override
+                            public void setSelected(AnActionEvent e, boolean state) {
+                                Project project = e.getProject();
+                                if (project != null) {
+                                    project.getComponent(RunConfigurationUseTracker.class).setOrderOthersByLastUsed(state);
+                                }
+                            }
+                        }};
             }
         });
-        children.add(new ToggleAction("Order Others by Last Used") {
-            @Override
-            public boolean isSelected(AnActionEvent e) {
-                Project project = e.getProject();
-                //noinspection SimplifiableIfStatement
-                if ( project != null ) {
-                    return project.getComponent(RunConfigurationUseTracker.class).isOrderOthersByLastUsed();
-                }
-                else {
-                    return false;
-                }
-            }
-
-            @Override
-            public void setSelected(AnActionEvent e, boolean state) {
-                Project project = e.getProject();
-                if ( project != null ) {
-                    project.getComponent(RunConfigurationUseTracker.class).setOrderOthersByLastUsed(state);
-                }
-            }
-        });
+        Optional.ofNullable(ActionManager.getInstance().getAction(EDIT_RUN_CONFIGURATIONS_ACTION_ID))
+                .ifPresentOrElse(
+                        children::add,
+                        () -> LOG.warn("Action not found: " + EDIT_RUN_CONFIGURATIONS_ACTION_ID));
         return children.toArray(AnAction.EMPTY_ARRAY);
     }
 
