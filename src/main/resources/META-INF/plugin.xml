@@ -22,7 +22,7 @@
   -->
 
 <idea-plugin>
-  <idea-version since-build="202" until-build="203.*"/>
+  <idea-version since-build="202"/>
   <id>ch.raffael.idea.plugins.runpopup</id>
   <name>Run Popup</name>
   <version>patched-by-gradle</version>
@@ -78,6 +78,13 @@
 
   <change-notes><![CDATA[
 
+    <h3>1.2</h3>
+    <ul>
+      <li>Move run popup settings to submenu, add action to edit run
+          configurations.</li>
+      <li>Move run popup settings and state to workspace.</li>
+    </ul>
+
     <h3>1.1.1</h3>
     <ul>
       <li>Set timestamp both on choosing from popup <em>and</em> running the
@@ -103,16 +110,16 @@
   </change-notes>
 
   <actions>
-    <action class="ch.raffael.idea.plugins.runpopup.RunPopupAction" id="ch.raffael.idea.plugins.runpopup.RunPopup" popup="true">
+    <action class="ch.raffael.idea.plugins.runpopup.RunPopupAction"
+            id="ch.raffael.idea.plugins.runpopup.RunPopup"
+            popup="true">
       <keyboard-shortcut first-keystroke="alt X" keymap="$default"/>
       <!--<add-to-group group-id="ToolbarRunGroup" anchor="before" relative-to-action="RunConfiguration"/>-->
     </action>
   </actions>
 
-  <project-components>
-    <component>
-      <implementation-class>ch.raffael.idea.plugins.runpopup.RunConfigurationUseTracker</implementation-class>
-    </component>
-  </project-components>
-
+  <projectListeners>
+    <listener topic="com.intellij.execution.ExecutionListener"
+              class="ch.raffael.idea.plugins.runpopup.RunConfigurationUseTracker$MyExecutionListener"/>
+  </projectListeners>
 </idea-plugin>

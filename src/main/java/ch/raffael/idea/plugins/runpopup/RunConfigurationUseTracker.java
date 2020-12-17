@@ -24,21 +24,23 @@ package ch.raffael.idea.plugins.runpopup;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import com.intellij.execution.ExecutionListener;
-import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.components.ProjectComponent;
+import com.intellij.openapi.components.RoamingType;
+import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.State;
+import com.intellij.openapi.components.Storage;
+import com.intellij.openapi.components.StoragePathMacros;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,8 +51,10 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Raffael Herzog
  */
-@State(name="ch.raffael.plugins.idea.runpopup.RunConfigurationUseTracker")
-public class RunConfigurationUseTracker implements ProjectComponent, PersistentStateComponent<RunConfigurationUseTracker.State> {
+@Service
+@State(name = "ch.raffael.plugins.idea.runpopup.RunConfigurationUseTracker",
+        storages = @Storage(value = StoragePathMacros.WORKSPACE_FILE, roamingType = RoamingType.DISABLED))
+public final class RunConfigurationUseTracker implements PersistentStateComponent<RunConfigurationUseTracker.State> {
 
     private final Object stateLock = new Object();
     private final Project project;
@@ -62,44 +66,14 @@ public class RunConfigurationUseTracker implements ProjectComponent, PersistentS
         this.project = project;
     }
 
-    @Override
-    public void projectOpened() {
-        cleanupObsoleteStateEntries();
-        MessageBusConnection conn = project.getMessageBus().connect();
-        conn.subscribe(ExecutionManager.EXECUTION_TOPIC, new ExecutionListener() {
-            @Override
-            public void processStartScheduled(@NotNull String executorId, @NotNull ExecutionEnvironment env) {
-                if ( env.getRunnerAndConfigurationSettings() != null ) {
-                    String confId = env.getRunnerAndConfigurationSettings().getUniqueID();
-                    touchRunConfiguration(confId, executorId);
-                }
-            }
-
-            @Override
-            public void processStarted(@NotNull String executorId, @NotNull ExecutionEnvironment env, @NotNull ProcessHandler handler) {
-                updateRunConfCount(env.getRunnerAndConfigurationSettings(), 1);
-            }
-
-            @Override
-            public void processTerminated(@NotNull String executorId, @NotNull ExecutionEnvironment env, @NotNull ProcessHandler handler, int exitCode) {
-                updateRunConfCount(env.getRunnerAndConfigurationSettings(), -1);
-            }
-
-            private void updateRunConfCount(@Nullable RunnerAndConfigurationSettings config, int delta) {
-                if ( config == null ) {
-                    return;
-                }
-                runningConfigurations.compute(config.getUniqueID(), (k, v) -> {
-                    int result = (v == null ? delta : v + delta);
-                    return result <= 0 ? null : result;
-                });
-            }
-
-        });
+    @NotNull
+    static RunConfigurationUseTracker runConfigurationUseTracker(Project project) {
+        return Objects.requireNonNull(project.getService(RunConfigurationUseTracker.class),
+                "project.getService(RunConfigurationUseTracker.class)");
     }
 
     void touchRunConfiguration(@NotNull String confId, @NotNull String executorId) {
-        synchronized ( stateLock ) {
+        synchronized (stateLock) {
             RunConfInfo rci = state.runConfInfo.computeIfAbsent(confId, (k) -> new RunConfInfo(confId, executorId));
             rci.timestamp = System.currentTimeMillis();
             rci.executorId = executorId;
@@ -109,19 +83,18 @@ public class RunConfigurationUseTracker implements ProjectComponent, PersistentS
 
     @Nullable
     String getLastRunExecutorId(String confId) {
-        synchronized ( stateLock ) {
+        synchronized (stateLock) {
             RunConfInfo info = state.runConfInfo.get(confId);
-            if ( info == null ) {
+            if (info == null) {
                 return null;
-            }
-            else {
+            } else {
                 return info.executorId;
             }
         }
     }
 
     long getLastRunTimestamp(String confId) {
-        synchronized ( stateLock ) {
+        synchronized (stateLock) {
             RunConfInfo info = state.runConfInfo.get(confId);
             return info == null ? Long.MIN_VALUE : info.timestamp;
         }
@@ -132,63 +105,61 @@ public class RunConfigurationUseTracker implements ProjectComponent, PersistentS
     }
 
     boolean isFavorite(String confId) {
-        synchronized ( stateLock ) {
+        synchronized (stateLock) {
             RunConfInfo info = state.runConfInfo.get(confId);
             return info != null && info.favorite;
         }
     }
 
     void setFavorite(String confId, boolean favorite) {
-        synchronized ( stateLock ) {
+        synchronized (stateLock) {
             RunConfInfo info = state.runConfInfo.get(confId);
-            if ( info == null ) {
-                if ( favorite ) {
+            if (info == null) {
+                if (favorite) {
                     info = new RunConfInfo(confId, null);
                     info.favorite = true;
                     state.runConfInfo.put(confId, info);
                 }
-            }
-            else {
+            } else {
                 info.favorite = favorite;
             }
         }
     }
 
     boolean isOrderFavoritesByLastUsed() {
-        synchronized ( stateLock ) {
+        synchronized (stateLock) {
             return state.orderFavoritesByLastUsed;
         }
     }
 
     void setOrderFavoritesByLastUsed(boolean enabled) {
-        synchronized ( stateLock ) {
+        synchronized (stateLock) {
             state.orderFavoritesByLastUsed = enabled;
-        }     
+        }
     }
 
     boolean isOrderOthersByLastUsed() {
-        synchronized ( stateLock ) {
+        synchronized (stateLock) {
             return state.orderOthersByLastUsed;
         }
     }
 
     void setOrderOthersByLastUsed(boolean enabled) {
-        synchronized ( stateLock ) {
+        synchronized (stateLock) {
             state.orderOthersByLastUsed = enabled;
         }
     }
 
-    @Nullable
     @Override
     public State getState() {
-        synchronized ( stateLock ) {
+        synchronized (stateLock) {
             return new State(state);
         }
     }
 
     @Override
     public void loadState(State state) {
-        synchronized ( stateLock ) {
+        synchronized (stateLock) {
             this.state = new State(state);
         }
     }
@@ -197,19 +168,21 @@ public class RunConfigurationUseTracker implements ProjectComponent, PersistentS
         Set<String> knownConfIds = RunManager.getInstance(project).getAllSettings().stream()
                 .map(RunnerAndConfigurationSettings::getUniqueID)
                 .collect(Collectors.toSet());
-        synchronized ( stateLock ) {
+        synchronized (stateLock) {
             state.runConfInfo.values().removeIf(rci -> !knownConfIds.contains(rci.confId));
         }
     }
 
     @SuppressWarnings("WeakerAccess")
     public static final class State {
+
         public boolean orderFavoritesByLastUsed = true;
         public boolean orderOthersByLastUsed = true;
         public Map<String, RunConfInfo> runConfInfo = new HashMap<>();
 
         public State() {
         }
+
         public State(State that) {
             this.orderFavoritesByLastUsed = that.orderFavoritesByLastUsed;
             this.orderOthersByLastUsed = that.orderOthersByLastUsed;
@@ -221,6 +194,7 @@ public class RunConfigurationUseTracker implements ProjectComponent, PersistentS
 
     @SuppressWarnings("WeakerAccess")
     public static final class RunConfInfo {
+
         public String confId;
         @Nullable
         public String executorId;
@@ -230,10 +204,12 @@ public class RunConfigurationUseTracker implements ProjectComponent, PersistentS
         @SuppressWarnings("unused")
         public RunConfInfo() {
         }
+
         public RunConfInfo(String confId, @Nullable String executorId) {
             this.confId = confId;
             this.executorId = executorId;
         }
+
         public RunConfInfo(RunConfInfo that) {
             this.confId = that.confId;
             this.executorId = that.executorId;
@@ -242,4 +218,35 @@ public class RunConfigurationUseTracker implements ProjectComponent, PersistentS
         }
     }
 
+    public static class MyExecutionListener implements ExecutionListener {
+
+        @Override
+        public void processStartScheduled(@NotNull String executorId, @NotNull ExecutionEnvironment env) {
+            if (env.getRunnerAndConfigurationSettings() != null) {
+                String confId = env.getRunnerAndConfigurationSettings().getUniqueID();
+                runConfigurationUseTracker(env.getProject()).touchRunConfiguration(confId, executorId);
+            }
+        }
+
+        @Override
+        public void processStarted(@NotNull String executorId, @NotNull ExecutionEnvironment env, @NotNull ProcessHandler handler) {
+            updateRunConfCount(env.getRunnerAndConfigurationSettings(), 1);
+        }
+
+        @Override
+        public void processTerminated(@NotNull String executorId, @NotNull ExecutionEnvironment env, @NotNull ProcessHandler handler, int exitCode) {
+            updateRunConfCount(env.getRunnerAndConfigurationSettings(), -1);
+        }
+
+        private void updateRunConfCount(@Nullable RunnerAndConfigurationSettings config, int delta) {
+            if (config == null) {
+                return;
+            }
+            runConfigurationUseTracker(config.getConfiguration().getProject()).runningConfigurations
+                    .compute(config.getUniqueID(), (k, v) -> {
+                        int result = (v == null ? delta : v + delta);
+                        return result <= 0 ? null : result;
+                    });
+        }
+    }
 }

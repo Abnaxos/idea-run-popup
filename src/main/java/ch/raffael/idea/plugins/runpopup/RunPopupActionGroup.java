@@ -40,6 +40,8 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static ch.raffael.idea.plugins.runpopup.RunConfigurationUseTracker.runConfigurationUseTracker;
+
 
 /**
  * Action group for the run popup.
@@ -70,7 +72,7 @@ class RunPopupActionGroup extends ActionGroup {
         if ( project == null ) {
             return NO_CHILDREN;
         }
-        RunConfigurationUseTracker useTracker = project.getComponent(RunConfigurationUseTracker.class);
+        RunConfigurationUseTracker useTracker = runConfigurationUseTracker(project);
         List<AnAction> children = new ArrayList<>();
         if ( appendRunConfigurationActions(project, children, true, useTracker.isOrderFavoritesByLastUsed()) ) {
             children.add(new Separator());
@@ -93,7 +95,7 @@ class RunPopupActionGroup extends ActionGroup {
                                 Project project = e.getProject();
                                 //noinspection SimplifiableIfStatement
                                 if (project != null) {
-                                    return project.getComponent(RunConfigurationUseTracker.class).isOrderFavoritesByLastUsed();
+                                    return runConfigurationUseTracker(project).isOrderFavoritesByLastUsed();
                                 } else {
                                     return false;
                                 }
@@ -103,7 +105,7 @@ class RunPopupActionGroup extends ActionGroup {
                             public void setSelected(AnActionEvent e, boolean state) {
                                 Project project = e.getProject();
                                 if (project != null) {
-                                    project.getComponent(RunConfigurationUseTracker.class).setOrderFavoritesByLastUsed(state);
+                                    runConfigurationUseTracker(project).setOrderFavoritesByLastUsed(state);
                                 }
                             }
                         },
@@ -113,7 +115,7 @@ class RunPopupActionGroup extends ActionGroup {
                                 Project project = e.getProject();
                                 //noinspection SimplifiableIfStatement
                                 if (project != null) {
-                                    return project.getComponent(RunConfigurationUseTracker.class).isOrderOthersByLastUsed();
+                                    return runConfigurationUseTracker(project).isOrderOthersByLastUsed();
                                 } else {
                                     return false;
                                 }
@@ -123,7 +125,7 @@ class RunPopupActionGroup extends ActionGroup {
                             public void setSelected(AnActionEvent e, boolean state) {
                                 Project project = e.getProject();
                                 if (project != null) {
-                                    project.getComponent(RunConfigurationUseTracker.class).setOrderOthersByLastUsed(state);
+                                    runConfigurationUseTracker(project).setOrderOthersByLastUsed(state);
                                 }
                             }
                         }};
@@ -137,7 +139,7 @@ class RunPopupActionGroup extends ActionGroup {
     }
 
     private boolean appendRunConfigurationActions(Project project, List<AnAction> target, boolean favorites, boolean sort) {
-        RunConfigurationUseTracker tracker = project.getComponent(RunConfigurationUseTracker.class);
+        RunConfigurationUseTracker tracker = runConfigurationUseTracker(project);
         Stream<RunnerAndConfigurationSettings> stream = RunManager.getInstance(project).getAllSettings().stream()
                 .filter((c) -> tracker.isFavorite(c.getUniqueID()) == favorites);
         if ( sort ) {

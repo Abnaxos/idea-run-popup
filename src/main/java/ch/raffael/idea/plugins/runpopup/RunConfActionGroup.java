@@ -45,6 +45,8 @@ import com.intellij.ui.LayeredIcon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static ch.raffael.idea.plugins.runpopup.RunConfigurationUseTracker.runConfigurationUseTracker;
+
 
 /**
  * Action group for the submenu of each run configuration entry.
@@ -66,7 +68,7 @@ class RunConfActionGroup extends ActionGroup {
     public void actionPerformed(AnActionEvent e) {
         Project project = e.getProject();
         if ( project != null ) {
-            RunConfigurationUseTracker useTracker = project.getComponent(RunConfigurationUseTracker.class);
+            RunConfigurationUseTracker useTracker = runConfigurationUseTracker(project);
             Executor executor = findExecutor(useTracker.getLastRunExecutorId(runConfiguration.getUniqueID()));
             if (executor != null) {
                 useTracker.touchRunConfiguration(runConfiguration.getUniqueID(), executor.getId());
@@ -79,7 +81,7 @@ class RunConfActionGroup extends ActionGroup {
     public void update(AnActionEvent e) {
         var project = e.getProject();
         if ( project != null ) {
-            var useTracker = project.getComponent(RunConfigurationUseTracker.class);
+            var useTracker = runConfigurationUseTracker(project);
             var executor = findExecutor(useTracker.getLastRunExecutorId(runConfiguration.getUniqueID()));
             if ( executor == null ) {
                 e.getPresentation().setVisible(false);
@@ -152,7 +154,7 @@ class RunConfActionGroup extends ActionGroup {
                 public void actionPerformed(AnActionEvent e) {
                     Project project = e.getProject();
                     if (project != null) {
-                        RunConfigurationUseTracker useTracker = project.getComponent(RunConfigurationUseTracker.class);
+                        RunConfigurationUseTracker useTracker = runConfigurationUseTracker(project);
                         useTracker.touchRunConfiguration(runConfiguration.getUniqueID(), executor.getId());
                         ExecutionUtil.runConfiguration(runConfiguration, executor);
                     }
@@ -173,13 +175,13 @@ class RunConfActionGroup extends ActionGroup {
                 if ( project == null ) {
                     return false;
                 }
-                return project.getComponent(RunConfigurationUseTracker.class).isFavorite(runConfiguration.getUniqueID());
+                return runConfigurationUseTracker(project).isFavorite(runConfiguration.getUniqueID());
             }
             @Override
             public void setSelected(AnActionEvent e, boolean state) {
                 Project project = e.getProject();
                 if ( project != null ) {
-                    project.getComponent(RunConfigurationUseTracker.class).setFavorite(runConfiguration.getUniqueID(), state);
+                    runConfigurationUseTracker(project).setFavorite(runConfiguration.getUniqueID(), state);
                 }
             }
         });
