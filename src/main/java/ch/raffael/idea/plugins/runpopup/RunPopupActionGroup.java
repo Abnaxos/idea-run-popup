@@ -25,6 +25,8 @@ package ch.raffael.idea.plugins.runpopup;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import com.intellij.execution.RunManager;
@@ -74,6 +76,12 @@ class RunPopupActionGroup extends ActionGroup {
         }
         RunConfigurationUseTracker useTracker = runConfigurationUseTracker(project);
         List<AnAction> children = new ArrayList<>();
+        if (useTracker.isLastUsedOnTop() && runConfigurations(project, false).limit(2).count() > 1) {
+            runConfigurations(project, true).findFirst().ifPresent(c -> {
+                children.add(new RunConfActionGroup(c));
+                children.add(new Separator());
+            });
+        }
         if ( appendRunConfigurationActions(project, children, true, useTracker.isOrderFavoritesByLastUsed()) ) {
             children.add(new Separator());
             firstNonFavoriteIndex = children.size();
@@ -88,47 +96,7 @@ class RunPopupActionGroup extends ActionGroup {
         children.add(new ActionGroup("Options", true) {
             @Override
             public AnAction @NotNull [] getChildren(@Nullable AnActionEvent e) {
-                return new AnAction[] {
-                        new ToggleAction("Order Favorites by Last Used") {
-                            @Override
-                            public boolean isSelected(AnActionEvent e) {
-                                Project project = e.getProject();
-                                //noinspection SimplifiableIfStatement
-                                if (project != null) {
-                                    return runConfigurationUseTracker(project).isOrderFavoritesByLastUsed();
-                                } else {
-                                    return false;
-                                }
-                            }
-
-                            @Override
-                            public void setSelected(AnActionEvent e, boolean state) {
-                                Project project = e.getProject();
-                                if (project != null) {
-                                    runConfigurationUseTracker(project).setOrderFavoritesByLastUsed(state);
-                                }
-                            }
-                        },
-                        new ToggleAction("Order Others by Last Used") {
-                            @Override
-                            public boolean isSelected(AnActionEvent e) {
-                                Project project = e.getProject();
-                                //noinspection SimplifiableIfStatement
-                                if (project != null) {
-                                    return runConfigurationUseTracker(project).isOrderOthersByLastUsed();
-                                } else {
-                                    return false;
-                                }
-                            }
-
-                            @Override
-                            public void setSelected(AnActionEvent e, boolean state) {
-                                Project project = e.getProject();
-                                if (project != null) {
-                                    runConfigurationUseTracker(project).setOrderOthersByLastUsed(state);
-                                }
-                            }
-                        }};
+                return optionsActions();
             }
         });
         Optional.ofNullable(ActionManager.getInstance().getAction(EDIT_RUN_CONFIGURATIONS_ACTION_ID))
@@ -138,18 +106,62 @@ class RunPopupActionGroup extends ActionGroup {
         return children.toArray(AnAction.EMPTY_ARRAY);
     }
 
-    private boolean appendRunConfigurationActions(Project project, List<AnAction> target, boolean favorites, boolean sort) {
+    @NotNull
+    private AnAction[] optionsActions() {
+        class BoolOptionAction extends ToggleAction {
+            private final Function<? super RunConfigurationUseTracker, Boolean> getter;
+            private final BiConsumer<? super RunConfigurationUseTracker, ? super Boolean> setter;
+            public BoolOptionAction(String text,
+                                    Function<? super RunConfigurationUseTracker, Boolean> getter,
+                                    BiConsumer<? super RunConfigurationUseTracker, ? super Boolean> setter) {
+                super(text);
+                this.setter = setter;
+                this.getter = getter;
+            }
+            @Override
+            public boolean isSelected(@NotNull AnActionEvent e) {
+                Project project = e.getProject();
+                return project != null ? getter.apply(runConfigurationUseTracker(project)) : Boolean.valueOf(false);
+            }
+            @Override
+            public void setSelected(@NotNull AnActionEvent e, boolean state) {
+                Project project = e.getProject();
+                if (project != null) {
+                    setter.accept(runConfigurationUseTracker(project), state);
+                }
+            }
+        }
+        return new AnAction[] {
+                new BoolOptionAction("Order Favorites by Last Used",
+                        RunConfigurationUseTracker::isOrderFavoritesByLastUsed,
+                        RunConfigurationUseTracker::setOrderFavoritesByLastUsed),
+                new BoolOptionAction("Order Others by Last Used",
+                        RunConfigurationUseTracker::isOrderOthersByLastUsed,
+                        RunConfigurationUseTracker::setOrderOthersByLastUsed),
+                new BoolOptionAction("Last Used Always on Top",
+                        RunConfigurationUseTracker::isLastUsedOnTop,
+                        RunConfigurationUseTracker::setLastUsedOnTop)};
+    }
+
+    private boolean appendRunConfigurationActions(Project project, List<AnAction> target,
+                                                  boolean favorites, boolean sort) {
         RunConfigurationUseTracker tracker = runConfigurationUseTracker(project);
-        Stream<RunnerAndConfigurationSettings> stream = RunManager.getInstance(project).getAllSettings().stream()
+        Stream<RunnerAndConfigurationSettings> stream = runConfigurations(project, sort)
                 .filter((c) -> tracker.isFavorite(c.getUniqueID()) == favorites);
+        int prevSize = target.size();
+        stream.map(RunConfActionGroup::new).forEach(target::add);
+        return target.size() > prevSize;
+    }
+
+    private Stream<RunnerAndConfigurationSettings> runConfigurations(Project project, boolean sort) {
+        RunConfigurationUseTracker tracker = runConfigurationUseTracker(project);
+        var stream = RunManager.getInstance(project).getAllSettings().stream();
         if ( sort ) {
             stream = stream.sorted((left, right) -> -Long.compare(
                     tracker.getLastRunTimestamp(left.getUniqueID()),
                     tracker.getLastRunTimestamp(right.getUniqueID())));
         }
-        int prevSize = target.size();
-        stream.map(RunConfActionGroup::new).forEach(target::add);
-        return target.size() > prevSize;
+        return stream;
     }
 
     @SuppressWarnings("unused")

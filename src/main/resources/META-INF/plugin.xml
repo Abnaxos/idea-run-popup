@@ -80,6 +80,8 @@
 
     <h3>1.2</h3>
     <ul>
+      <li>Always display the last used run configuration on the top (turn
+          off in options).</li>
       <li>Move run popup settings to submenu, add action to edit run
           configurations.</li>
       <li>Move run popup settings and state to workspace.</li>

@@ -150,6 +150,18 @@ public final class RunConfigurationUseTracker implements PersistentStateComponen
         }
     }
 
+    boolean isLastUsedOnTop() {
+        synchronized (stateLock) {
+            return state.lastUsedOnTop;
+        }
+    }
+
+    void setLastUsedOnTop(boolean enabled) {
+        synchronized (stateLock) {
+            state.lastUsedOnTop = enabled;
+        }
+    }
+
     @Override
     public State getState() {
         synchronized (stateLock) {
@@ -178,6 +190,7 @@ public final class RunConfigurationUseTracker implements PersistentStateComponen
 
         public boolean orderFavoritesByLastUsed = true;
         public boolean orderOthersByLastUsed = true;
+        public boolean lastUsedOnTop = true;
         public Map<String, RunConfInfo> runConfInfo = new HashMap<>();
 
         public State() {
@@ -186,6 +199,7 @@ public final class RunConfigurationUseTracker implements PersistentStateComponen
         public State(State that) {
             this.orderFavoritesByLastUsed = that.orderFavoritesByLastUsed;
             this.orderOthersByLastUsed = that.orderOthersByLastUsed;
+            this.lastUsedOnTop = that.lastUsedOnTop;
             that.runConfInfo.values().stream()
                     .map(RunConfInfo::new)
                     .forEach((rci) -> this.runConfInfo.put(rci.confId, rci));
