@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import com.intellij.execution.RunManager;
@@ -77,19 +79,30 @@ class RunPopupActionGroup extends ActionGroup {
         RunConfigurationUseTracker useTracker = runConfigurationUseTracker(project);
         List<AnAction> children = new ArrayList<>();
         if (useTracker.isLastUsedOnTop() && runConfigurations(project, false).limit(2).count() > 1) {
-            runConfigurations(project, true).findFirst().ifPresent(c -> {
+            runConfigurations(project, true)
+                    .filter(c -> !useTracker.isHelper(c.getUniqueID()))
+                    .findFirst().ifPresent(c -> {
                 children.add(new RunConfActionGroup(c));
                 children.add(new Separator());
             });
         }
-        if ( appendRunConfigurationActions(project, children, true, useTracker.isOrderFavoritesByLastUsed()) ) {
+        if ( appendRunConfigurationActions(project, children,
+                c -> useTracker.isFavorite(c.getUniqueID()),
+                useTracker.isOrderFavoritesByLastUsed()) ) {
             children.add(new Separator());
             firstNonFavoriteIndex = children.size();
         }
         else {
             firstNonFavoriteIndex = null;
         }
-        if ( !appendRunConfigurationActions(project, children, false, useTracker.isOrderOthersByLastUsed()) ) {
+        boolean hasOthers = appendRunConfigurationActions(project, children,
+                c -> !useTracker.isFavorite(c.getUniqueID()) && !useTracker.isHelper(c.getUniqueID()),
+                useTracker.isOrderOthersByLastUsed());
+        children.add(new Separator("Helpers"));
+        boolean hasHelpers = appendRunConfigurationActions(project, children,
+                c -> useTracker.isHelper(c.getUniqueID()),
+                useTracker.isOrderOthersByLastUsed());
+        if (!hasOthers && !hasHelpers) {
             firstNonFavoriteIndex = null;
         }
         children.add(new Separator("Options"));
@@ -144,10 +157,9 @@ class RunPopupActionGroup extends ActionGroup {
     }
 
     private boolean appendRunConfigurationActions(Project project, List<AnAction> target,
-                                                  boolean favorites, boolean sort) {
-        RunConfigurationUseTracker tracker = runConfigurationUseTracker(project);
-        Stream<RunnerAndConfigurationSettings> stream = runConfigurations(project, sort)
-                .filter((c) -> tracker.isFavorite(c.getUniqueID()) == favorites);
+                                                  Predicate<? super RunnerAndConfigurationSettings> filter,
+                                                  boolean sort) {
+        Stream<RunnerAndConfigurationSettings> stream = runConfigurations(project, sort).filter(filter);
         int prevSize = target.size();
         stream.map(RunConfActionGroup::new).forEach(target::add);
         return target.size() > prevSize;

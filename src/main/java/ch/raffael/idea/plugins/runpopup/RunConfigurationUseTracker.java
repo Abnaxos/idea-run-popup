@@ -107,7 +107,7 @@ public final class RunConfigurationUseTracker implements PersistentStateComponen
     boolean isFavorite(String confId) {
         synchronized (stateLock) {
             RunConfInfo info = state.runConfInfo.get(confId);
-            return info != null && info.favorite;
+            return info != null && info.favorite && !info.helper;
         }
     }
 
@@ -122,6 +122,34 @@ public final class RunConfigurationUseTracker implements PersistentStateComponen
                 }
             } else {
                 info.favorite = favorite;
+                if (favorite) {
+                    info.helper = false;
+                }
+            }
+        }
+    }
+
+    boolean isHelper(String confId) {
+        synchronized (stateLock) {
+            RunConfInfo info = state.runConfInfo.get(confId);
+            return info != null && info.helper && !info.favorite;
+        }
+    }
+
+    void setHelper(String confId, boolean helper) {
+        synchronized (stateLock) {
+            RunConfInfo info = state.runConfInfo.get(confId);
+            if (info == null) {
+                if (helper) {
+                    info = new RunConfInfo(confId, null);
+                    info.helper = false;
+                    state.runConfInfo.put(confId, info);
+                }
+            } else {
+                info.helper = helper;
+                if (info.helper) {
+                    info.favorite = false;
+                }
             }
         }
     }
@@ -214,6 +242,7 @@ public final class RunConfigurationUseTracker implements PersistentStateComponen
         public String executorId;
         public long timestamp = System.currentTimeMillis();
         public boolean favorite = false;
+        public boolean helper = false;
 
         @SuppressWarnings("unused")
         public RunConfInfo() {
@@ -229,6 +258,7 @@ public final class RunConfigurationUseTracker implements PersistentStateComponen
             this.executorId = that.executorId;
             this.timestamp = that.timestamp;
             this.favorite = that.favorite;
+            this.helper = that.helper;
         }
     }
 

@@ -24,6 +24,9 @@ package ch.raffael.idea.plugins.runpopup;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import javax.swing.Icon;
 
@@ -41,6 +44,7 @@ import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.LayeredIcon;
+import com.intellij.util.BooleanFunction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -146,24 +150,12 @@ class RunConfActionGroup extends ActionGroup {
             });
         }
         children.add(new Separator());
-        children.add(new ToggleAction("Favorite") {
-            @Override
-            public boolean isSelected(AnActionEvent e) {
-                Project project = e.getProject();
-                //noinspection SimplifiableIfStatement
-                if ( project == null ) {
-                    return false;
-                }
-                return runConfigurationUseTracker(project).isFavorite(runConfiguration.getUniqueID());
-            }
-            @Override
-            public void setSelected(AnActionEvent e, boolean state) {
-                Project project = e.getProject();
-                if ( project != null ) {
-                    runConfigurationUseTracker(project).setFavorite(runConfiguration.getUniqueID(), state);
-                }
-            }
-        });
+        children.add(new FlagAction("Favorite",
+                t -> t.isFavorite(runConfiguration.getUniqueID()),
+                (t, s) -> t.setFavorite(runConfiguration.getUniqueID(), s)));
+        children.add(new FlagAction("Helper",
+                t -> t.isHelper(runConfiguration.getUniqueID()),
+                (t, s) -> t.setHelper(runConfiguration.getUniqueID(), s)));
         return children.toArray(AnAction.EMPTY_ARRAY);
     }
 
@@ -176,4 +168,35 @@ class RunConfActionGroup extends ActionGroup {
     public boolean isPopup() {
         return true;
     }
+
+    private class FlagAction extends ToggleAction {
+        private final Function<? super RunConfigurationUseTracker, Boolean> getter;
+        private final BiConsumer<? super RunConfigurationUseTracker, Boolean> setter;
+
+        private FlagAction(String text,
+                           Function<? super RunConfigurationUseTracker, Boolean> getter,
+                           BiConsumer<? super RunConfigurationUseTracker, Boolean> setter) {
+            super(text);
+            this.getter = getter;
+            this.setter = setter;
+        }
+
+        @Override
+        public boolean isSelected(AnActionEvent e) {
+            Project project = e.getProject();
+            //noinspection SimplifiableIfStatement
+            if ( project == null ) {
+                return false;
+            }
+            return getter.apply(runConfigurationUseTracker(project));
+        }
+        @Override
+        public void setSelected(AnActionEvent e, boolean state) {
+            Project project = e.getProject();
+            if ( project != null ) {
+                setter.accept(runConfigurationUseTracker(project), state);
+            }
+        }
+    }
+
 }
