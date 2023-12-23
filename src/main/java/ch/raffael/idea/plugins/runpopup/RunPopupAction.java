@@ -27,6 +27,7 @@ import javax.swing.JComponent;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -50,8 +51,14 @@ import org.jetbrains.annotations.NotNull;
 public class RunPopupAction extends AnAction implements CustomComponentAction{
 
     public RunPopupAction() {
-        super("Run Popup", "Show a run popup menu",
-                new LayeredIcon(AllIcons.Actions.Execute, AllIcons.General.Dropdown));
+        getTemplatePresentation().setText("Run Popup");
+        getTemplatePresentation().setDescription("Show a run popup menu");
+        getTemplatePresentation().setIcon(LayeredIcon.create(AllIcons.Actions.Execute, AllIcons.General.Dropdown));
+    }
+
+    @Override
+    public void update(@NotNull AnActionEvent e) {
+        super.update(e);
     }
 
     @Override
@@ -74,6 +81,11 @@ public class RunPopupAction extends AnAction implements CustomComponentAction{
         else {
             popup.show(RelativePoint.getSouthWestOf(actionComponent));
         }
+    }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.EDT;
     }
 
     @Override

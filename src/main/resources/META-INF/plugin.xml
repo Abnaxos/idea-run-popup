@@ -22,7 +22,7 @@
   -->
 
 <idea-plugin>
-  <idea-version since-build="202"/>
+  <idea-version since-build="233"/>
   <id>ch.raffael.idea.plugins.runpopup</id>
   <name>Run Popup</name>
   <version>patched-by-gradle</version>

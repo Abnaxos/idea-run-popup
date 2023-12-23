@@ -25,7 +25,6 @@ package ch.raffael.idea.plugins.runpopup;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 import javax.swing.Icon;
@@ -36,15 +35,14 @@ import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.LayeredIcon;
-import com.intellij.util.BooleanFunction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -65,6 +63,8 @@ class RunConfActionGroup extends ActionGroup {
                 new CompoundIcon(runConfiguration.getType().getIcon(),
                         Executor.EXECUTOR_EXTENSION_NAME.getExtensionList().get(0).getIcon()));
         this.runConfiguration = runConfiguration;
+        getTemplatePresentation().setPopupGroup(true);
+        getTemplatePresentation().setPerformGroup(true);
     }
 
     @Override
@@ -78,6 +78,11 @@ class RunConfActionGroup extends ActionGroup {
                 ExecutionUtil.runConfiguration(runConfiguration, executor);
             }
         }
+    }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.BGT;
     }
 
     @Override
@@ -97,7 +102,7 @@ class RunConfActionGroup extends ActionGroup {
                     runConfiguration.checkSettings();
                 }
                 catch ( RuntimeConfigurationException e1 ) {
-                    confIcon = (new LayeredIcon(confIcon,
+                    confIcon = (LayeredIcon.create(confIcon,
                             AllIcons.RunConfigurations.InvalidConfigurationLayer));
                 }
                 if ( useTracker.isRunning(runConfiguration.getUniqueID()) ) {
@@ -144,6 +149,11 @@ class RunConfActionGroup extends ActionGroup {
                 }
 
                 @Override
+                public @NotNull ActionUpdateThread getActionUpdateThread() {
+                    return ActionUpdateThread.BGT;
+                }
+
+                @Override
                 public void update(AnActionEvent e) {
                     e.getPresentation().setEnabled(canRunWith(executor.getId()));
                 }
@@ -159,17 +169,7 @@ class RunConfActionGroup extends ActionGroup {
         return children.toArray(AnAction.EMPTY_ARRAY);
     }
 
-    @Override
-    public boolean canBePerformed(DataContext context) {
-        return true;
-    }
-
-    @Override
-    public boolean isPopup() {
-        return true;
-    }
-
-    private class FlagAction extends ToggleAction {
+    private static class FlagAction extends ToggleAction {
         private final Function<? super RunConfigurationUseTracker, Boolean> getter;
         private final BiConsumer<? super RunConfigurationUseTracker, Boolean> setter;
 
@@ -179,6 +179,11 @@ class RunConfActionGroup extends ActionGroup {
             super(text);
             this.getter = getter;
             this.setter = setter;
+        }
+
+        @Override
+        public @NotNull ActionUpdateThread getActionUpdateThread() {
+            return ActionUpdateThread.BGT;
         }
 
         @Override

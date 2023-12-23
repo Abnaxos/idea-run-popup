@@ -7,7 +7,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'org.jetbrains.intellij.plugins:gradle-intellij-plugin:0.6.5'
+        classpath 'org.jetbrains.intellij.plugins:gradle-intellij-plugin:1.16.1'
         classpath 'org.ajoberstar:grgit:1.7.2'
     }
 }
@@ -17,21 +17,27 @@ apply plugin:'java'
 apply plugin:'idea'
 apply plugin:'org.jetbrains.intellij'
 
-ext.git = local.GitInfo.load(project)
-version = git.version
+version = '1.3.1'.with {
+    def r = project.properties['RELEASE']
+    if ( r == null) {
+        return "$it-SNAPSHOT"
+    } else if (r != it) {
+        throw new GradleException("RELEASE mismatch: RELEASE='$r', expected '$it'")
+    } else {
+        return it
+    }
+}
 
-sourceCompatibility = targetCompatibility = '11'
+sourceCompatibility = targetCompatibility = '17'
 
 repositories {
     mavenCentral()
 }
 
 intellij {
-    version = '202.8194.7' // 2020.2.4
-//    version = '203.5981.155' // 2020.3.0
+    version = '233.11799.300' // (2023.3.1)
     updateSinceUntilBuild = false
-    updateSinceUntilBuild = false
-    sandboxDirectory = 'idea-sandbox'
+    sandboxDir = 'idea-sandbox'
 }
 
 //noinspection GroovyAssignabilityCheck
@@ -58,7 +64,7 @@ buildPlugin {
 
 patchPluginXml {
     String repoContentRootUrl = 'https://raw.githubusercontent.com/Abnaxos/idea-run-popup/'
-    if (version.contains('SNAPSHOT')) {
+    if (version.get().contains('SNAPSHOT')) {
         repoContentRootUrl += 'develop'
     } else {
         repoContentRootUrl += project.version
@@ -67,7 +73,7 @@ patchPluginXml {
     inputs.property 'repoContentRootUrl', repoContentRootUrl
 
     doLast {
-        new File(destinationDir, 'plugin.xml').with {
+        file("${destinationDir.get()}/plugin.xml").with {
             setText(getText('UTF-8').replace('@@repoContentRootUrl@@', repoContentRootUrl), 'UTF-8')
         }
     }

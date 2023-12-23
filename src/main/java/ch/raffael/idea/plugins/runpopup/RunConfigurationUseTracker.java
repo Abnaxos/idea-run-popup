@@ -51,7 +51,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Raffael Herzog
  */
-@Service
+@Service(Service.Level.PROJECT)
 @State(name = "ch.raffael.plugins.idea.runpopup.RunConfigurationUseTracker",
         storages = @Storage(value = StoragePathMacros.WORKSPACE_FILE, roamingType = RoamingType.DISABLED))
 public final class RunConfigurationUseTracker implements PersistentStateComponent<RunConfigurationUseTracker.State> {
