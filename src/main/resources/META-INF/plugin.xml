@@ -77,14 +77,22 @@
 
   <change-notes><![CDATA[
 
-    <h3>1.3</h3>
+    <h3>1.3.1</h3>
+    <ul>
+      <li>Collect available run configurations in a background thread rather
+          than the EDT. It's usually no problem, but in some projects, it may
+          take a while.</li>
+      <li>Fix some deprecated API usages.</li>
+    </ul>
+
+    <h3>1.3.0</h3>
     <ul>
       <li>Add a "helpers" category. Configurations marked as helper will
           <em>never</em> be shown on the top. This is useful e.g. for
           run configurations that aren't normally run manually.</li>
     </ul>
 
-    <h3>1.2</h3>
+    <h3>1.2.0</h3>
     <ul>
       <li>Always display the last used run configuration on the top (turn
           off in options).</li>
